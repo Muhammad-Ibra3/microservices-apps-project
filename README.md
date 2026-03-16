@@ -134,5 +134,3 @@ This fork demonstrates:
 - GitOps-ready deployments with preview environments
 
 - Secure CI pipelines using reusable templates with image scanning and signing
-```
-
