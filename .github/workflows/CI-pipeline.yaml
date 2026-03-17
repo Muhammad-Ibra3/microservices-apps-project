@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+    types: 
+      - opened
+
+    
+
+jobs:
+  detect:
+    uses: Muhammad-Ibra3/platform-engineering-project/platform-pipelines/ci-tasks/detect-service.yaml
+
+  build:
+    needs: detect
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.detect.outputs.services) }}
+    uses: Muhammad-Ibra3/platform-engineering-project/platform-pipelines/ci-tasks/build-service.yaml
+    with:
+      service: ${{ matrix.service }}
+      image_tag: ${{ github.sha }}
+
+  scan:
+    needs: [detect, build]
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.detect.outputs.services) }}
+    uses: Muhammad-Ibra3/platform-engineering-project/platform-pipelines/ci-tasks/security-scan.yaml
+    with:
+      image: local/${{ matrix.service }}:${{ github.sha }}
+      image_artifact: image-${{ matrix.service }}-${{ github.sha }}
+
+  push_image:
+    needs: [detect, scan]
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.detect.outputs.services) }}
+    uses: Muhammad-Ibra3/platform-engineering-project/platform-pipelines/ci-tasks/push-image.yaml
+    with:
+      service: ${{ matrix.service }}
+      image_tag: ${{ github.sha }}
+      image_artifact: image-${{ matrix.service }}-${{ github.sha }}
+    secrets: inherit
+
+  update_gitops:
+    needs: [detect, push_image]
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.detect.outputs.services) }}
+    uses: Muhammad-Ibra3/platform-engineering-project/platform-pipelines/ci-tasks/update-gitops.yaml
+    with:
+      service: ${{ matrix.service }}
+      image_tag: ${{ github.sha }}
+    secrets: inherit
