@@ -33,8 +33,18 @@ jobs:
       image: local/${{ matrix.service }}:${{ github.sha }}
       image_artifact: image-${{ matrix.service }}-${{ github.sha }}
 
-  push_image:
+  sign:
     needs: [detect, scan]
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.detect.outputs.services) }}
+    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/sign-image.yaml@main
+    with:
+      image_artifact: image-${{ matrix.service }}-${{ github.sha }}
+
+  push_image:
+    needs: [detect, scan, sign]
     strategy:
       fail-fast: false
       matrix:
