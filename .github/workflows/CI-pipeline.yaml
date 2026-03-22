@@ -1,18 +1,26 @@
-name: CI
+name: CI Pipeline
 
 on:
   pull_request:
-    types: 
+    types:
       - opened
+      - synchronize
+      - reopened
 
-    
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   detect:
     uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/detect-service.yaml@main
+    with:
+      base_sha: ${{ github.event.pull_request.base.sha }}
+      head_sha: ${{ github.event.pull_request.head.sha }}
 
   build:
     needs: detect
+    if: ${{ needs.detect.outputs.services != '[]' }}
     strategy:
       fail-fast: false
       matrix:
@@ -24,6 +32,7 @@ jobs:
 
   scan:
     needs: [detect, build]
+    if: ${{ needs.detect.outputs.services != '[]' }}
     strategy:
       fail-fast: false
       matrix:
@@ -33,18 +42,9 @@ jobs:
       image: local/${{ matrix.service }}:${{ github.sha }}
       image_artifact: image-${{ matrix.service }}-${{ github.sha }}
 
-  sign:
-    needs: [detect, scan]
-    strategy:
-      fail-fast: false
-      matrix:
-        service: ${{ fromJSON(needs.detect.outputs.services) }}
-    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/sign-image.yaml@main
-    with:
-      image_artifact: image-${{ matrix.service }}-${{ github.sha }}
-
   push_image:
-    needs: [detect, scan, sign]
+    needs: [detect, scan]
+    if: ${{ needs.detect.outputs.services != '[]' }}
     strategy:
       fail-fast: false
       matrix:
@@ -58,13 +58,11 @@ jobs:
 
   update_gitops:
     needs: [detect, push_image]
-    strategy:
-      fail-fast: false
-      matrix:
-        service: ${{ fromJSON(needs.detect.outputs.services) }}
+    if: ${{ needs.detect.outputs.services != '[]' }}
     uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/update-gitops.yaml@main
     with:
-      service: ${{ matrix.service }}
+      services: ${{ needs.detect.outputs.services }}
       image_tag: ${{ github.sha }}
+      pr_number: ${{ github.event.pull_request.number }}
       gitops_repo: Muhammad-Ibra3/platform-engineering-project
     secrets: inherit
