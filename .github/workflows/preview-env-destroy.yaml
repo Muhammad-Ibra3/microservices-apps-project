@@ -2,15 +2,16 @@ name: Destroy Preview
 
 on:
   pull_request:
-    types: [closed]
+    types:
+      - closed
+
+permissions:
+  contents: write
 
 jobs:
-
   destroy:
-
     uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/preview-envs/preview-destroy.yaml@main
-
     with:
       pr_number: ${{ github.event.pull_request.number }}
-
+      gitops_repo: Muhammad-Ibra3/platform-engineering-project
     secrets: inherit
