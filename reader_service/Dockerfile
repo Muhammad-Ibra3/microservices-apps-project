@@ -14,16 +14,15 @@ COPY . .
 WORKDIR /build/reader_service
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o reader .
+    go build -o reader ./cmd/main.go
 
 # ---------- RUNTIME STAGE ----------
 FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
 
-# Copy binary and set ownership to root
-COPY --from=builder /build/reader_service/reader /app/reader
-RUN chown root:root /app/reader
+# Copy binary with non-root ownership for runtime
+COPY --from=builder --chown=nonroot:nonroot /build/reader_service/reader /app/reader
 
 # Use non-root runtime user
 USER nonroot:nonroot

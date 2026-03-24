@@ -14,16 +14,15 @@ COPY . .
 WORKDIR /build/api_gateway_service
     
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o gateway .
+    go build -o gateway ./cmd/main.go
     
 # ---------- RUNTIME STAGE ----------
 FROM gcr.io/distroless/base-debian12
     
 WORKDIR /app
     
-# Copy binary and set ownership to root
-COPY --from=builder /build/api_gateway_service/gateway /app/gateway
-RUN chown root:root /app/gateway
+# Copy binary with non-root ownership for runtime
+COPY --from=builder --chown=nonroot:nonroot /build/api_gateway_service/gateway /app/gateway
     
 # Use the non-root user provided by distroless
 USER nonroot:nonroot
