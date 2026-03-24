@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   detect:
-    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/detect-service.yaml@main
+    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/detect-service.yaml@main
     with:
       base_sha: ${{ github.event.pull_request.base.sha }}
       head_sha: ${{ github.event.pull_request.head.sha }}
@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         service: ${{ fromJSON(needs.detect.outputs.services) }}
-    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/build-service.yaml@main
+    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/build-service.yaml@main
     with:
       service: ${{ matrix.service }}
       image_tag: ${{ github.sha }}
@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         service: ${{ fromJSON(needs.detect.outputs.services) }}
-    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/security-scan.yaml@main
+    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/security-scan.yaml@main
     with:
       image: local/${{ matrix.service }}:${{ github.sha }}
       image_artifact: image-${{ matrix.service }}-${{ github.sha }}
@@ -49,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         service: ${{ fromJSON(needs.detect.outputs.services) }}
-    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/push-and-sign.yaml@main
+    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/push-and-sign.yaml@main
     with:
       service: ${{ matrix.service }}
       image_tag: ${{ github.sha }}
@@ -59,7 +59,7 @@ jobs:
   update_gitops:
     needs: [detect, push_image]
     if: ${{ needs.detect.outputs.services != '[]' }}
-    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/update-gitops.yaml@main
+    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/update-gitops.yaml@main
     with:
       services: ${{ needs.detect.outputs.services }}
       image_tag: ${{ github.sha }}
