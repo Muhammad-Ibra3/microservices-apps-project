@@ -49,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         service: ${{ fromJSON(needs.detect.outputs.services) }}
-    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/push-image.yaml@main
+    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/ci-tasks/push-and-sign.yaml@main
     with:
       service: ${{ matrix.service }}
       image_tag: ${{ github.sha }}
