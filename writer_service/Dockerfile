@@ -1,6 +1,6 @@
 # ---------- BUILD STAGE ----------
 # Matching Go version with explicit version in go.mod
-FROM golang:1.16-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /build
 
