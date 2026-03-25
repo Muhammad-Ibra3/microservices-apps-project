@@ -85,6 +85,18 @@ func InitConfig() (*Config, error) {
 	if postgresPort != "" {
 		cfg.Postgresql.Port = postgresPort
 	}
+	postgresUser := os.Getenv(constants.PostgresqlUser)
+	if postgresUser != "" {
+		cfg.Postgresql.User = postgresUser
+	}
+	postgresPassword := os.Getenv(constants.PostgresqlPass)
+	if postgresPassword != "" {
+		cfg.Postgresql.Password = postgresPassword
+	}
+	postgresDB := os.Getenv(constants.PostgresqlDB)
+	if postgresDB != "" {
+		cfg.Postgresql.DBName = postgresDB
+	}
 	jaegerAddr := os.Getenv(constants.JaegerHostPort)
 	if jaegerAddr != "" {
 		cfg.Jaeger.HostPort = jaegerAddr

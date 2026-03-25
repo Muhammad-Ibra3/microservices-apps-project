@@ -95,6 +95,18 @@ func InitConfig() (*Config, error) {
 	if postgresPort != "" {
 		cfg.Postgresql.Port = postgresPort
 	}
+	postgresUser := os.Getenv(constants.PostgresqlUser)
+	if postgresUser != "" {
+		cfg.Postgresql.User = postgresUser
+	}
+	postgresPassword := os.Getenv(constants.PostgresqlPass)
+	if postgresPassword != "" {
+		cfg.Postgresql.Password = postgresPassword
+	}
+	postgresDB := os.Getenv(constants.PostgresqlDB)
+	if postgresDB != "" {
+		cfg.Postgresql.DBName = postgresDB
+	}
 	mongoURI := os.Getenv(constants.MongoDbURI)
 	if mongoURI != "" {
 		//cfg.Mongo.URI = "mongodb://host.docker.internal:27017"
