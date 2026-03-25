@@ -10,6 +10,9 @@ const (
 	MongoDbURI     = "MONGO_URI"
 	PostgresqlHost = "POSTGRES_HOST"
 	PostgresqlPort = "POSTGRES_PORT"
+	PostgresqlUser = "POSTGRES_USER"
+	PostgresqlPass = "POSTGRES_PASSWORD"
+	PostgresqlDB   = "POSTGRES_DB"
 
 	ReaderServicePort = "READER_SERVICE"
 

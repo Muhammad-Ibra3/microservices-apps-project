@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,10 +25,20 @@ type Config struct {
 
 // NewMongoDBConn Create new MongoDB client
 func NewMongoDBConn(ctx context.Context, cfg *Config) (*mongo.Client, error) {
+	clientOptions := options.Client().ApplyURI(cfg.URI)
+
+	// Respect credentials embedded in URI first; only fall back to config user/password.
+	if cfg.User != "" && cfg.Password != "" {
+		if parsedURI, err := url.Parse(cfg.URI); err == nil && parsedURI.User == nil {
+			clientOptions.SetAuth(options.Credential{
+				Username: cfg.User,
+				Password: cfg.Password,
+			})
+		}
+	}
 
 	client, err := mongo.NewClient(
-		options.Client().ApplyURI(cfg.URI).
-			SetAuth(options.Credential{Username: cfg.User, Password: cfg.Password}).
+		clientOptions.
 			SetConnectTimeout(connectTimeout).
 			SetMaxConnIdleTime(maxConnIdleTime).
 			SetMinPoolSize(minPoolSize).
