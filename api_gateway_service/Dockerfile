@@ -23,6 +23,9 @@ WORKDIR /app
     
 # Copy binary with non-root ownership for runtime
 COPY --from=builder --chown=nonroot:nonroot /build/api_gateway_service/gateway /app/gateway
+# Copy service config and point the app to it
+COPY --from=builder --chown=nonroot:nonroot /build/api_gateway_service/config/config.yaml /app/config/config.yaml
+ENV CONFIG_PATH=/app/config/config.yaml
     
 # Use the non-root user provided by distroless
 USER nonroot:nonroot
