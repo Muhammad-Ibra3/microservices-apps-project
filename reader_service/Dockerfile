@@ -23,6 +23,9 @@ WORKDIR /app
 
 # Copy binary with non-root ownership for runtime
 COPY --from=builder --chown=nonroot:nonroot /build/reader_service/reader /app/reader
+# Copy service config and point the app to it
+COPY --from=builder --chown=nonroot:nonroot /build/reader_service/config/config.yaml /app/config/config.yaml
+ENV CONFIG_PATH=/app/config/config.yaml
 
 # Use non-root runtime user
 USER nonroot:nonroot
