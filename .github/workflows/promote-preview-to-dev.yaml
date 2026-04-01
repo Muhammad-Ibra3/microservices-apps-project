@@ -1,0 +1,57 @@
+name: Promote preview to dev
+
+# Runs only when main moves forward (e.g. PR merged), not when a PR is closed without merging.
+# Resolves the PR number from the merge or squash commit message. "Rebase and merge" does not
+# produce a standard merge message; use a manual promote path for that flow if needed.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  resolve_pr:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.resolve.outputs.pr_number }}
+    steps:
+      - name: Resolve PR number from merge commit
+        id: resolve
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          msg="${COMMIT_MSG//$'\r'/}"
+
+          if [[ "$msg" =~ Merge\ pull\ request\ \#([0-9]+) ]]; then
+            echo "pr_number=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          first_line="${msg%%$'\n'*}"
+          if [[ "$first_line" =~ \(#([0-9]+)\) ]]; then
+            echo "pr_number=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "No PR number in commit message; skipping preview→dev promotion."
+          echo "pr_number=" >> "$GITHUB_OUTPUT"
+
+  promote:
+    needs: resolve_pr
+    if: needs.resolve_pr.outputs.pr_number != ''
+    permissions:
+      contents: write
+      id-token: write
+    uses: Muhammad-Ibra3/platform-engineering-project/.github/workflows/promote-helm-env.yaml@main
+    with:
+      source_dir: platform-helm/envs/preview/preview-${{ needs.resolve_pr.outputs.pr_number }}
+      dest_dir: platform-helm/envs/dev/applications/microservices
+      floating_tag: dev-latest
+      checkout_ref: ${{ github.sha }}
+    secrets:
+      AWS_ROLE: ${{ secrets.AWS_ROLE }}
